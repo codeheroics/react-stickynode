@@ -78,10 +78,11 @@ class Sticky extends React.Component {
         return target && target.offsetHeight || 0;
     }
 
-    getTopPosition () {
+    getTopPosition (nextProps) {
         var self = this;
+        var props = nextProps || self.props
         // TODO, topTarget is for current layout, may remove
-        var top = self.props.top || self.props.topTarget || 0;
+        var top = props.top || props.topTarget || 0;
         if (typeof top === 'string') {
             if (!self.topTarget) {
                 self.topTarget = doc.querySelector(top);
@@ -99,10 +100,11 @@ class Sticky extends React.Component {
         return scrollTop + rect.bottom;
     }
 
-    getBottomBoundary () {
+    getBottomBoundary (nextProps) {
         var self = this;
+        var props = nextProps || self.props
 
-        var boundary = self.props.bottomBoundary;
+        var boundary = props.bottomBoundary;
 
         // TODO, bottomBoundary was an object, depricate it later.
         if (typeof boundary === 'object') {
@@ -141,8 +143,9 @@ class Sticky extends React.Component {
 
     /**
      * Update the initial position, width, and height. It should update whenever children change.
+     * @param {Object} nextProps in case we came here from componentWillReceiveProps
      */
-    updateInitialDimension () {
+    updateInitialDimension (nextProps) {
         var self = this;
 
         self.timer = +new Date;
@@ -155,13 +158,13 @@ class Sticky extends React.Component {
         var outerY = outerRect.top + scrollTop;
 
         self.setState({
-            top: self.getTopPosition(),
+            top: self.getTopPosition(nextProps),
             bottom: Math.min(self.state.top + height, winHeight),
             width: width,
             height: height,
             x: outerRect.left,
             y: outerY,
-            bottomBoundary: self.getBottomBoundary(),
+            bottomBoundary: self.getBottomBoundary(nextProps),
             topBoundary: outerY
         });
     }
@@ -259,7 +262,14 @@ class Sticky extends React.Component {
         self.delta = delta;
     }
 
-    componentWillReceiveProps () {
+    componentWillReceiveProps (nextProps) {
+        if (
+          this.props.bottomBoundary !== nextProps.bottomBoundary ||
+          this.props.top !== nextProps.top
+        ) {
+          this.updateInitialDimension(nextProps);
+          return this.update();
+        }
         this.forceUpdate();
     }
 
