@@ -89,7 +89,7 @@ class Sticky extends React.Component {
             }
             top = self.getTargetHeight(self.topTarget);
         }
-        return top;
+        return top + props.marginTop;
     }
 
     getTargetBottom (target) {
@@ -157,9 +157,12 @@ class Sticky extends React.Component {
         var height = inner.offsetHeight;
         var outerY = outerRect.top + scrollTop;
 
+        var marginBottom = (nextProps && nextProps.marginBottom) || this.props.marginBottom
+        var topPosition = self.getTopPosition(nextProps)
+
         self.setState({
-            top: self.getTopPosition(nextProps),
-            bottom: Math.min(self.state.top + height, winHeight),
+            top: topPosition,
+            bottom: Math.min(topPosition + height, winHeight - marginBottom),
             width: width,
             height: height,
             x: outerRect.left,
@@ -334,6 +337,8 @@ Sticky.defaultProps = {
     enabled: true,
     top: 0,
     bottomBoundary: 0,
+    marginTop: 0,
+    marginBottom: 0,
     enableTransforms: true
 };
 
@@ -355,7 +360,9 @@ Sticky.propTypes = {
         propTypes.string,
         propTypes.number
     ]),
-    enableTransforms: propTypes.bool
+    enableTransforms: propTypes.bool,
+    marginTop: propTypes.number,
+    marginBottom: propTypes.number
 };
 
 module.exports = Sticky;
