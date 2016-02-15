@@ -239,6 +239,12 @@ class Sticky extends React.Component {
                         self.release(self.state.y);
                         self.stickyTop = self.state.y;
                         self.stickyBottom = self.stickyTop + self.state.height;
+
+                        // Possible case: Big scrolls (eg. page down)
+                        // forces us to need to fix immediately from original
+                        if (delta > 0 && bottom > self.stickyBottom) { // scroll down
+                            self.fix(self.state.bottom - self.state.height);
+                        }
                         break;
                     case STATUS_RELEASED:
                         if (delta > 0 && bottom > self.stickyBottom) { // scroll down
