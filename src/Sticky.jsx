@@ -155,9 +155,10 @@ class Sticky extends React.Component {
 
         var width = outer.offsetWidth;
         var height = inner.offsetHeight;
-        var outerY = outerRect.top + scrollTop;
+        var outerY = Math.floor(outerRect.top + scrollTop);
 
         var marginBottom = (nextProps && nextProps.marginBottom) || this.props.marginBottom
+        var marginTop = (nextProps && nextProps.marginTop) || this.props.marginTop
         var topPosition = self.getTopPosition(nextProps)
 
         self.setState({
@@ -168,7 +169,7 @@ class Sticky extends React.Component {
             x: outerRect.left,
             y: outerY,
             bottomBoundary: self.getBottomBoundary(nextProps),
-            topBoundary: outerY
+            topBoundary: outerY + marginTop
         });
     }
 
