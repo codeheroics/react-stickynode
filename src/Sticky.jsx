@@ -128,9 +128,14 @@ class Sticky extends React.Component {
     }
 
     release (pos) {
+        // Calculating the outerY rect here instead of using the previously set
+        // this.state.y previously prevents errors on IE9
+        var outerRect = this.refs.outer.getBoundingClientRect();
+        var outerY = Math.floor(outerRect.top + scrollTop);
+
         this.setState({
             status: STATUS_RELEASED,
-            pos: pos - this.state.y
+            pos: pos - outerY
         });
     }
 
