@@ -10,7 +10,6 @@ var React = require('react');
 
 var classNames = require('classnames');
 var propTypes = React.PropTypes;
-var shallowCompare = require('react-addons-shallow-compare');
 var subscribe = require('subscribe-ui-event').subscribe;
 
 // constants
@@ -280,12 +279,12 @@ class Sticky extends React.Component {
     componentWillReceiveProps (nextProps) {
         if (
           this.props.bottomBoundary !== nextProps.bottomBoundary ||
-          this.props.top !== nextProps.top
+          this.props.top !== nextProps.top ||
+          nextProps.updateDimensionsOnReceiveProps
         ) {
           this.updateInitialDimension(nextProps);
-          return this.update();
+          this.update();
         }
-        this.forceUpdate();
     }
 
     componentWillUnmount () {
@@ -315,10 +314,6 @@ class Sticky extends React.Component {
         } else {
             style.top = pos;
         }
-    }
-
-    shouldComponentUpdate (nextProps, nextState) {
-        return shallowCompare(this, nextProps, nextState);
     }
 
     render () {
@@ -351,7 +346,8 @@ Sticky.defaultProps = {
     bottomBoundary: 0,
     marginTop: 0,
     marginBottom: 0,
-    enableTransforms: true
+    enableTransforms: true,
+    updateDimensionsOnReceiveProps: false
 };
 
 /**
@@ -372,6 +368,7 @@ Sticky.propTypes = {
         propTypes.string,
         propTypes.number
     ]),
+    updateDimensionsOnReceiveProps: propTypes.bool,
     enableTransforms: propTypes.bool,
     marginTop: propTypes.number,
     marginBottom: propTypes.number
