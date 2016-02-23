@@ -18,7 +18,6 @@ var React = require('react');
 
 var classNames = require('classnames');
 var propTypes = React.PropTypes;
-var shallowCompare = require('react-addons-shallow-compare');
 var subscribe = require('subscribe-ui-event').subscribe;
 
 // constants
@@ -266,6 +265,13 @@ var Sticky = (function (_React$Component) {
                             self.release(self.state.y);
                             self.stickyTop = self.state.y;
                             self.stickyBottom = self.stickyTop + self.state.height;
+
+                            // Possible case: Big scrolls (eg. page down)
+                            // forces us to need to fix immediately from original
+                            if (delta > 0 && bottom > self.stickyBottom) {
+                                // scroll down
+                                self.fix(self.state.bottom - self.state.height);
+                            }
                             break;
                         case STATUS_RELEASED:
                             if (delta > 0 && bottom > self.stickyBottom) {
@@ -304,11 +310,10 @@ var Sticky = (function (_React$Component) {
     }, {
         key: 'componentWillReceiveProps',
         value: function componentWillReceiveProps(nextProps) {
-            if (this.props.bottomBoundary !== nextProps.bottomBoundary || this.props.top !== nextProps.top) {
+            if (this.props.bottomBoundary !== nextProps.bottomBoundary || this.props.top !== nextProps.top || nextProps.updateDimensionsOnReceiveProps) {
                 this.updateInitialDimension(nextProps);
-                return this.update();
+                this.update();
             }
-            this.forceUpdate();
         }
     }, {
         key: 'componentWillUnmount',
@@ -337,11 +342,6 @@ var Sticky = (function (_React$Component) {
             } else {
                 style.top = pos;
             }
-        }
-    }, {
-        key: 'shouldComponentUpdate',
-        value: function shouldComponentUpdate(nextProps, nextState) {
-            return shallowCompare(this, nextProps, nextState);
         }
     }, {
         key: 'render',
@@ -380,7 +380,8 @@ Sticky.defaultProps = {
     bottomBoundary: 0,
     marginTop: 0,
     marginBottom: 0,
-    enableTransforms: true
+    enableTransforms: true,
+    updateDimensionsOnReceiveProps: false
 };
 
 /**
@@ -395,6 +396,7 @@ Sticky.propTypes = {
     top: propTypes.oneOfType([propTypes.string, propTypes.number]),
     bottomBoundary: propTypes.oneOfType([propTypes.object, // TODO, may remove
     propTypes.string, propTypes.number]),
+    updateDimensionsOnReceiveProps: propTypes.bool,
     enableTransforms: propTypes.bool,
     marginTop: propTypes.number,
     marginBottom: propTypes.number
