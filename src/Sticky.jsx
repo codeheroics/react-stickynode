@@ -148,6 +148,7 @@ class Sticky extends React.Component {
     /**
      * Update the initial position, width, and height. It should update whenever children change.
      * @param {Object} nextProps in case we came here from componentWillReceiveProps
+     * @returns {Object} The dimensions just set in the state
      */
     updateInitialDimension (nextProps) {
         var self = this;
@@ -165,7 +166,7 @@ class Sticky extends React.Component {
         var marginTop = (nextProps && nextProps.marginTop) || this.props.marginTop
         var topPosition = self.getTopPosition(nextProps)
 
-        self.setState({
+        var nextState = {
             top: topPosition,
             bottom: Math.min(topPosition + height, winHeight - marginBottom),
             width: width,
@@ -174,13 +175,16 @@ class Sticky extends React.Component {
             y: outerY,
             bottomBoundary: self.getBottomBoundary(nextProps),
             topBoundary: outerY + marginTop
-        });
+        }
+
+        self.setState(nextState);
+        return nextState
     }
 
     handleResize (e, ae) {
         winHeight = ae.resize.height;
-        this.updateInitialDimension();
-        this.update();
+        var newDimensions = this.updateInitialDimension();
+        this.update(newDimensions);
     }
 
     handleScrollStart (e, ae) {
@@ -209,57 +213,62 @@ class Sticky extends React.Component {
      * 2. Fix to the top of screen when scrolling up and "top" < Sticky current top
      * (The above 2 points act kind of "bottom" dragging Sticky down or "top" dragging it up.)
      * 3. Release Sticky when "top" and "bottom" are between Sticky current top and bottom.
+     *
+     * @param {Object} newDimensions An object which takes priority over this.state.
+     *   Useful when dimensions were just updated, as this.state is updated asynchronously
+     *
      */
-    update () {
-        var self = this;
+    update (newDimensions) {
+        var self = this
+        var state = newDimensions ? newDimensions : this.state
 
-        if (self.state.bottomBoundary - self.state.topBoundary <= self.state.height || !self.props.enabled) {
-            if (self.state.status !== STATUS_ORIGINAL) {
+        if (state.bottomBoundary - state.topBoundary <= state.height || !self.props.enabled) {
+            if (state.status !== STATUS_ORIGINAL) {
                 self.reset();
             }
             return;
         }
 
         var delta = scrollDelta;
-        var top = scrollTop + self.state.top;
-        var bottom = scrollTop + self.state.bottom;
+        var top = scrollTop + state.top;
+        var bottom = scrollTop + state.bottom;
 
-        if (top <= self.state.topBoundary) {
+        if (top <= state.topBoundary) {
             self.reset();
-        } else if (bottom >= self.state.bottomBoundary) {
-            self.stickyBottom = self.state.bottomBoundary;
-            self.stickyTop = self.stickyBottom - self.state.height;
+        } else if (bottom >= state.bottomBoundary) {
+            self.stickyBottom = state.bottomBoundary;
+            self.stickyTop = self.stickyBottom - state.height;
             self.release(self.stickyTop);
         } else {
-            if (self.state.height > winHeight) {
+            if (state.height > winHeight) {
                 // In this case, Sticky is larger then screen
-                switch (self.state.status) {
+                switch (state.status) {
                     case STATUS_ORIGINAL:
-                        self.release(self.state.y);
-                        self.stickyTop = self.state.y;
-                        self.stickyBottom = self.stickyTop + self.state.height;
+                        self.release(state.y);
+                        self.stickyTop = state.y;
+                        self.stickyBottom = self.stickyTop + state.height;
 
                         // Possible case: Big scrolls (eg. page down)
                         // forces us to need to fix immediately from original
                         if (delta > 0 && bottom > self.stickyBottom) { // scroll down
-                            self.fix(self.state.bottom - self.state.height);
+                            self.fix(state.bottom - state.height);
                         }
                         break;
                     case STATUS_RELEASED:
                         if (delta > 0 && bottom > self.stickyBottom) { // scroll down
-                            self.fix(self.state.bottom - self.state.height);
+                            self.fix(state.bottom - state.height);
                         } else if (delta < 0 && top < self.stickyTop) { // scroll up
-                            this.fix(self.state.top);
+                            this.fix(state.top);
                         }
                         break;
                     case STATUS_FIXED:
                         var isChanged = true;
-                        if (delta > 0 && self.state.pos === self.state.top) { // scroll down
+                        if (delta > 0 && state.pos === state.top) { // scroll down
                             self.stickyTop = top - delta;
-                            self.stickyBottom = self.stickyTop + self.state.height;
-                        } else if (delta < 0 && self.state.pos === self.state.bottom - self.state.height) { // up
+                            self.stickyBottom = self.stickyTop + state.height;
+                        } else if (delta < 0 && state.pos === state.bottom - state.height) { // up
                             self.stickyBottom = bottom - delta;
-                            self.stickyTop = self.stickyBottom - self.state.height;
+                            self.stickyTop = self.stickyBottom - state.height;
                         } else {
                             isChanged = false;
                         }
@@ -270,7 +279,7 @@ class Sticky extends React.Component {
                         break;
                 }
             } else {
-                self.fix(self.state.top);
+                self.fix(state.top);
             }
         }
         self.delta = delta;
@@ -282,8 +291,8 @@ class Sticky extends React.Component {
           this.props.top !== nextProps.top ||
           nextProps.updateDimensionsOnReceiveProps
         ) {
-          this.updateInitialDimension(nextProps);
-          this.update();
+          var newDimensions = this.updateInitialDimension(nextProps);
+          this.update(newDimensions);
         }
     }
 
