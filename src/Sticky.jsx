@@ -240,9 +240,9 @@ class Sticky extends React.Component {
             self.stickyTop = self.stickyBottom - state.height;
             self.release(self.stickyTop);
         } else {
-            if (state.height > winHeight) {
-                // In this case, Sticky is larger then screen
-                switch (state.status) {
+            if (state.height > winHeight - state.top) {
+                // In this case, Sticky is larger then screen minus sticky top
+                switch (self.state.status) {
                     case STATUS_ORIGINAL:
                         self.release(state.y);
                         self.stickyTop = state.y;
