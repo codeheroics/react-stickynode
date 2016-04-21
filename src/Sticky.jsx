@@ -88,7 +88,7 @@ class Sticky extends Component {
             }
             top = self.getTargetHeight(self.topTarget);
         }
-        return top;
+        return top + self.props.marginTop;
     }
 
     getTargetBottom (target) {
@@ -156,7 +156,7 @@ class Sticky extends Component {
 
         self.setState({
             top: self.getTopPosition(),
-            bottom: Math.min(self.state.top + height, winHeight),
+            bottom: Math.min(self.state.top + height, winHeight - this.props.marginBottom),
             width: width,
             height: height,
             x: outerRect.left,
@@ -369,7 +369,9 @@ Sticky.defaultProps = {
     bottomBoundary: 0,
     enableTransforms: true,
     activeClass: 'active',
-    onStateChange: null
+    onStateChange: null,
+    marginTop: 0,
+    marginBottom: 0,
 };
 
 /**
@@ -392,7 +394,9 @@ Sticky.propTypes = {
     ]),
     enableTransforms: PropTypes.bool,
     activeClass: PropTypes.string,
-    onStateChange: PropTypes.func
+    onStateChange: PropTypes.func,
+    marginTop: PropTypes.number,
+    marginBottom: PropTypes.number
 };
 
 Sticky.STATUS_ORIGINAL = STATUS_ORIGINAL;
